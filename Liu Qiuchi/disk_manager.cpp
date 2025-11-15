@@ -160,6 +160,7 @@ int DiskManager::open_file(const std::string &path) {
     if(fd==-1){
         throw FileNotFoundError(path);
     }
+    //缺少更新文件打开列表
     path2fd_[path]=fd;
     fd2path_[fd]=path;
     return fd;
