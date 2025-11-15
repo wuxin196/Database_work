@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #include "storage/disk_manager.h"
 
 #include <assert.h>    // for assert
@@ -286,4 +285,3 @@ void DiskManager::write_log(char *log_data, int size) {
         throw UnixError();
     }
 }
-
