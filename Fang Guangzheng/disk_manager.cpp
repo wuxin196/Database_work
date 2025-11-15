@@ -286,9 +286,4 @@ void DiskManager::write_log(char *log_data, int size) {
         throw UnixError();
     }
 }
-=======
-#include<iostream>
-#include "disk_manager.h"
-using namespace std;
-//sfdgfsegrd
->>>>>>> 48b3e6ff4241af253ea50ab87ca9bc67beca0218
+
