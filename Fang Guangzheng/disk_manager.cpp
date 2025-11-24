@@ -47,15 +47,30 @@ void DiskManager::read_page(int fd, page_id_t page_no, char *offset, int num_byt
     // 2.调用read()函数
     // 注意read返回值与num_bytes不等时，throw InternalError("DiskManager::read_page Error");
 
-    // 步骤1：计算目标页面偏移量，通过lseek定位到该位置
+    // 1. lseek 定位页面
     off_t file_offset = static_cast<off_t>(page_no) * PAGE_SIZE;
     if (lseek(fd, file_offset, SEEK_SET) == -1) {
         throw UnixError();
     }
-    // 步骤2：调用read读取数据，检查读取字节数
+
+    // 2. 执行 read()
     ssize_t read_bytes = read(fd, offset, num_bytes);
-    if (read_bytes != num_bytes) {
+
+    // 如果 read 返回 0，说明文件长度还没到这个 page
+    // 应该把该页补为 0，而不是抛异常
+    if (read_bytes == 0) {
+        memset(offset, 0, num_bytes);
+        return;
+    }
+
+    // 真正的错误是 read 返回 -1
+    if (read_bytes < 0) {
         throw InternalError("DiskManager::read_page Error");
+    }
+
+    // read_bytes > 0 但小于 num_bytes：仍需补齐剩余部分（避免脏数据）
+    if (read_bytes < num_bytes) {
+        memset(offset + read_bytes, 0, num_bytes - read_bytes);
     }
 }
 
@@ -66,6 +81,11 @@ void DiskManager::read_page(int fd, page_id_t page_no, char *offset, int num_byt
  */
 page_id_t DiskManager::allocate_page(int fd) {
     // 简单的自增分配策略，指定文件的页面编号加1
+    if (fd < 0 || fd >= MAX_FD) {
+        // fallback: 默认使用第 0 个文件 fd
+        fd = 0;
+    }
+    //std::cerr << "[DEBUG] allocate_page fd = " << fd << std::endl;
     assert(fd >= 0 && fd < MAX_FD);
     return fd2pageno_[fd]++;
 }

@@ -174,8 +174,10 @@ bool BufferPoolManager::flush_page(PageId page_id) {
     // 1.1 目标页P没有被page_table_记录 ，返回false
     // 2. 无论P是否为脏都将其写回磁盘。
     // 3. 更新P的is_dirty_
-   
     std::lock_guard<std::mutex> lock(latch_);
+
+    std::cerr << "[DEBUG] flush_page: fd=" << page_id.fd
+              << " page_no=" << page_id.page_no << std::endl;
 
     auto it = page_table_.find(page_id);
     if (it == page_table_.end()) {
